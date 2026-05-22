@@ -40,6 +40,7 @@ const messageSchema = new mongoose.Schema(
 messageSchema.index({ conversationId: 1, createdAt: -1 });
 messageSchema.index({ sender: 1, receiver: 1, createdAt: -1 });
 messageSchema.index({ receiver: 1, status: 1, createdAt: -1 });
+messageSchema.index({ receiver: 1, status: 1, conversationId: 1 });
 
 messageSchema.statics.findForConversation = function findForConversation(conversationId, limit = 50) {
   return this.find({ conversationId })
