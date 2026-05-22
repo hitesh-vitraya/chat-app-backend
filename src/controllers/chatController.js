@@ -32,7 +32,7 @@ const getConversations = async (req, res, next) => {
         {
           $match: {
             receiver: userId,
-            status: { $ne: 'read' }
+            status: 'sent'
           }
         },
         {
