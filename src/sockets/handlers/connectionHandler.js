@@ -1,4 +1,5 @@
 const User = require('../../models/User');
+const { registerMessageHandlers } = require('./messageHandler');
 
 const onlineUsers = new Map();
 
@@ -43,6 +44,7 @@ const handleConnection = async (socket) => {
   try {
     socket.join(userId);
     await addOnlineUser(userId, socket.id);
+    registerMessageHandlers(socket);
     console.log(`Socket connected: ${socket.id} (user: ${userId})`);
   } catch (error) {
     console.error(`Failed to handle socket connection for ${socket.id}:`, error.message);
