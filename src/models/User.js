@@ -57,4 +57,7 @@ userSchema.methods.toJSON = function toJSON() {
   return user;
 };
 
+userSchema.index({ isOnline: -1, name: 1, email: 1 });
+userSchema.index({ name: 1 });
+
 module.exports = mongoose.model('User', userSchema);

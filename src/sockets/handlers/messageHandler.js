@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
-const Conversation = require('../../models/Conversation');
 const Message = require('../../models/Message');
 const User = require('../../models/User');
+const Conversation = require('../../models/Conversation');
+const { findOrCreateOneToOneConversation } = require('../../services/conversationService');
 
 const sendAck = (callback, payload) => {
   if (typeof callback === 'function') {
@@ -35,23 +36,6 @@ const validateMessagePayload = (payload, senderId) => {
   return null;
 };
 
-const findOrCreateConversation = async (senderId, receiverId) => {
-  const participants = [senderId, receiverId];
-
-  let conversation = await Conversation.findOne({
-    participants: {
-      $all: participants,
-      $size: 2
-    }
-  });
-
-  if (!conversation) {
-    conversation = await Conversation.create({ participants });
-  }
-
-  return conversation;
-};
-
 const registerMessageHandlers = (socket) => {
   socket.on('send_message', async (payload, callback) => {
     try {
@@ -75,7 +59,7 @@ const registerMessageHandlers = (socket) => {
         });
       }
 
-      const conversation = await findOrCreateConversation(senderId, receiverId);
+      const conversation = await findOrCreateOneToOneConversation(senderId, receiverId);
       const message = await Message.create({
         conversationId: conversation._id,
         sender: senderId,

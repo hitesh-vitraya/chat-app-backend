@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
+const User = require('../models/User');
+const { findOrCreateOneToOneConversation, populateConversation } = require('../services/conversationService');
 const AppError = require('../utils/AppError');
 
 const parsePagination = (query) => {
@@ -118,7 +120,47 @@ const getMessages = async (req, res, next) => {
   }
 };
 
+const startConversation = async (req, res, next) => {
+  try {
+    const { receiverId } = req.body;
+    const senderId = req.user._id;
+
+    if (!receiverId) {
+      throw new AppError('Receiver id is required', 400);
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(receiverId)) {
+      throw new AppError('Receiver id is invalid', 400);
+    }
+
+    if (receiverId.toString() === senderId.toString()) {
+      throw new AppError('Cannot start conversation with yourself', 400);
+    }
+
+    const receiver = await User.findById(receiverId);
+    if (!receiver) {
+      throw new AppError('Receiver not found', 404);
+    }
+
+    const conversation = await findOrCreateOneToOneConversation(senderId, receiverId);
+    const populatedConversation = await populateConversation(
+      Conversation.findById(conversation._id)
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Conversation fetched successfully',
+      data: {
+        conversation: populatedConversation
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getConversations,
-  getMessages
+  getMessages,
+  startConversation
 };
